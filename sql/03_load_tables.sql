@@ -1,0 +1,5 @@
+USE news_analyzer;
+
+INSERT INTO SITE(ID, NAME) VALUES (1, '20 Minuten');
+INSERT INTO SITE(ID, NAME) VALUES (2, 'Blick');
+INSERT INTO SITE(ID, NAME) VALUES (3, 'Tagesanzeiger');
