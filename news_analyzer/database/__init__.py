@@ -10,39 +10,46 @@ class Database:
                                           charset='utf8mb4',
                                           cursorclass=pymysql.cursors.DictCursor)
 
-    def save_author(self, lastname, firstname):
+    def save_user(self, author):
         with self.connection.cursor() as c:
             c.execute(
-                'SELECT ID FROM AUTHOR WHERE LAST_NAME = %s AND FIRST_NAME = %s', (lastname, firstname))
+                'SELECT ID FROM USER WHERE LAST_NAME = %s AND FIRST_NAME = %s', (author.last_name, author.first_name))
             result = c.fetchone()
             if result:
                 return result['ID']
 
             c.execute(
-                'INSERT INTO AUTHOR(LAST_NAME, FIRST_NAME) VALUES(%s, %s)', (lastname, firstname))
+                'INSERT INTO USER(LAST_NAME, FIRST_NAME, TYPE) VALUES(%s, %s, %s)', (author.last_name, author.first_name, author.type))
             self.connection.commit()
+
             return c.lastrowid
 
-    def save_article(self, article_id, author_id, site_id, title, article_length, comment_count, published_at, category_id):
+    def save_article(self, article):
         with self.connection.cursor() as c:
             c.execute(
-                'SELECT ID FROM article WHERE ARTICLE_ID = %s', (article_id,))
+                'SELECT ID FROM ARTICLE WHERE EXTERNAL_ID = %s', (article.external_id,))
             result = c.fetchone()
             if result:
                 return result['ID']
 
             c.execute(
                 """
-                INSERT INTO article(
-                    ARTICLE_ID
+                INSERT INTO ARTICLE(
+                      EXTERNAL_ID
                     , AUTHOR_ID
                     , SITE_ID
                     , TITLE
                     , ARTICLE_LENGTH
-                    , COMMENT_COUNT
                     , PUBLISHED_AT
                     , CATEGORY_ID
-                ) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)""", (article_id, author_id, site_id, title, article_length, comment_count, published_at, category_id))
+                ) VALUES(%s, %s, %s, %s, %s, %s, %s)""", (
+                    article.external_id, article.author_id,
+                    article.site_id,
+                    article.title,
+                    article.length,
+                    article.published_at,
+                    article.category_id
+                ))
             self.connection.commit()
             return c.lastrowid
 
