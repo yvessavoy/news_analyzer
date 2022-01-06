@@ -63,6 +63,16 @@ def visualize():
                 'borderColor': COLORS[k],
             })
 
+        l = []
+        for ds in data['chart1']['datasets']:
+            l.append(len(ds['data']))
+
+        m = max(l)
+        for (ix, ds) in enumerate(data['chart1']['datasets']):
+            if len(ds['data']) != m:
+                l = m - len(ds['data'])
+                data['chart1']['datasets'][ix]['data'] = ([0] * l) + ds['data']
+
         # Wochenuebersicht
         c.execute('SELECT * FROM WEEKDAY_STATISTIC')
         rows = c.fetchall()
@@ -84,6 +94,16 @@ def visualize():
                 'borderWidth': 1
             })
 
+        l = []
+        for ds in data['chart2']['datasets']:
+            l.append(len(ds['data']))
+
+        m = max(l)
+        for (ix, ds) in enumerate(data['chart2']['datasets']):
+            if len(ds['data']) != m:
+                l = m - len(ds['data'])
+                data['chart2']['datasets'][ix]['data'] = ([0] * l) + ds['data']
+
         # Artikel pro Kategorie
         c.execute('SELECT * FROM CATEGORY_SUMMARY')
         rows = c.fetchall()
@@ -94,6 +114,7 @@ def visualize():
             data['chart3']['datasets'][0]['borderColor'] = 'rgb(255, 159, 64)'
             data['chart3']['datasets'][0]['borderWidth'] = '1'
 
+    # Replace template tags with actual gathered data
     with open('template.html', 'r') as template:
         content = template.read()
         content = content.replace('##data1##', json.dumps(data['chart1']))
