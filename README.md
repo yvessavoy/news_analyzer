@@ -9,6 +9,15 @@ The following environment variables are needed to run news analyzer:
 - DB_USER: MySQL Username
 - DB_PASSWORD: MySQL Password
 
+## Available Scripts
+### Readers
+- 20min.ch: `poetry run python news_analyzer/readers/20min.py`
+- tagesanzeiger.ch: `poetry run python news_analyzer/readers/tagesanzeiger.py`
+- blick.ch: `poetry run python news_analyzer/readers/blick.py`
+
+### Visualize Data
+`poetry run python news_analyzer/visualize.py`
+
 ## Database Design
 ### Site
 | ID | Name     |
