@@ -6,7 +6,7 @@
 -- Create a user for the data aggregation scripts
 -- that has the right to SELECT and INSERT on all
 -- tables
-DROP USER 'data_retrieval'@'localhost';
+DROP USER IF EXISTS 'data_retrieval'@'localhost';
 CREATE USER 'data_retrieval'@'localhost';
 GRANT SELECT ON NEWS_ANALYZER.ARTICLE TO 'data_retrieval'@'localhost';
 GRANT INSERT ON NEWS_ANALYZER.ARTICLE TO 'data_retrieval'@'localhost';
@@ -19,7 +19,7 @@ GRANT INSERT ON NEWS_ANALYZER.CATEGORY TO 'data_retrieval'@'localhost';
 
 -- Create a user for the data analysis / report generation script
 -- which only has the right to SELECT on all views
-DROP USER 'report'@'localhost';
+DROP USER IF EXISTS 'report'@'localhost';
 CREATE USER 'report'@'localhost';
 GRANT SELECT ON NEWS_ANALYZER.WEEKDAY_STATISTIC TO 'report'@'localhost';
 GRANT SELECT ON NEWS_ANALYZER.PUB_STATISTIC TO 'report'@'localhost';
