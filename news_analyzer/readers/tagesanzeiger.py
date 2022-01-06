@@ -1,9 +1,6 @@
-import os
-import ssl
-import feedparser
 import requests
 from bs4 import BeautifulSoup
-from news_analyzer.database.models import Article
+from news_analyzer.database.models import Article, User
 from news_analyzer.readers import Reader
 
 feeds = [
@@ -100,8 +97,9 @@ feeds = [
 # key: (tag, class)
 # This information is taken from the HTML-source of tagesanzeiger.ch
 HTML_INFO = {
-    'author': ('span', 'ContentMetaInfo_author__3hPjj'),
-    'article_text': ('p', 'ArticleParagraph_root__3J10I')
+    'author': ('span', 'ContentMetaInfo_author__HbYvO'),
+    'article_text': ('p', 'ArticleParagraph_root__3J10I'),
+    'comments': ('span', 'commentcount'),
 }
 
 
@@ -113,13 +111,16 @@ class Tagesanzeiger(Reader):
         article.title = entry.title
         article.published_at = entry.published_parsed
         article.external_id = entry.link.split("-")[-1]
+
+        # Start transaction
+        # We only want to persist the new data if all inserts (author, article, etc.)
+        # are successful
+        self.db.begin_transaction()
+
         article.category_id = self.db.save_category(category)
 
         author_items = self.get_elements_from_html(
             entry.link, HTML_INFO['author'])
-
-        length_items = self.get_elements_from_html(
-            entry.link, HTML_INFO['article_text'])
 
         r = requests.get(entry.link)
         soup = BeautifulSoup(r.text, 'html.parser')
@@ -127,13 +128,21 @@ class Tagesanzeiger(Reader):
             HTML_INFO['author'][0], {"class": HTML_INFO['author'][1]})
 
         if len(spans) > 0:
+            author = User(type=1)
             author_splits = spans[0].text.split()
             if len(author_splits) > 1:
-                article.author_id = self.db.save_author(
-                    author_splits[1], author_splits[0])
+                author.first_name = author_splits[0]
+                author.last_name = author_splits[1]
             else:
-                article.author_id = self.db.save_author(
-                    author_splits[0], author_splits[0])
+                author.first_name = author_splits[0]
+                author.last_name = author_splits[0]
+
+            article.author_id = self.db.save_user(author)
+
+        comments = self.get_elements_from_html(
+            entry.link, HTML_INFO['comments'])
+        if comments and len(comments) > 0:
+            article.comment_count = str(comments[0]).split('>')[1].split()[0]
 
         paragraphs = soup.find_all(
             HTML_INFO['article_text'][0], {"class": HTML_INFO['article_text'][1]})
@@ -141,7 +150,13 @@ class Tagesanzeiger(Reader):
             for s in paragraph.find_all('span'):
                 article.length += len(s.text)
 
+        if article.length == 0:
+            article.length = len(article.title)
+
         self.db.save_article(article)
+
+        # Commit transaction as all database operations were OK
+        self.db.commit_transaction()
 
     def process_feed(self):
         for (url, category) in feeds:
