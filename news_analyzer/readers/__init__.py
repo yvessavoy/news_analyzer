@@ -29,7 +29,7 @@ class Reader:
         """Process all item in a given RSS-feed
         """
         feed = feedparser.parse(link)
-        for entry in feed:
+        for entry in feed.entries:
             self.soup = None
             handler_func(entry, args)
 

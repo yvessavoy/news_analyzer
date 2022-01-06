@@ -38,6 +38,7 @@ class Article:
     length: int = 0
     published_at: datetime = None
     category_id: int = None
+    comment_count: int = None
 
 
 @dataclass

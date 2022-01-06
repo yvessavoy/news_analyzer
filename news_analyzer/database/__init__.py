@@ -10,6 +10,12 @@ class Database:
                                           charset='utf8mb4',
                                           cursorclass=pymysql.cursors.DictCursor)
 
+    def begin_transaction(self):
+        self.connection.begin()
+
+    def commit_transaction(self):
+        self.connection.commit()
+
     def save_user(self, author):
         with self.connection.cursor() as c:
             c.execute(
@@ -39,16 +45,18 @@ class Database:
                     , AUTHOR_ID
                     , SITE_ID
                     , TITLE
-                    , ARTICLE_LENGTH
+                    , LENGTH
                     , PUBLISHED_AT
                     , CATEGORY_ID
-                ) VALUES(%s, %s, %s, %s, %s, %s, %s)""", (
+                    , COMMENT_COUNT
+                ) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)""", (
                     article.external_id, article.author_id,
                     article.site_id,
                     article.title,
                     article.length,
                     article.published_at,
-                    article.category_id
+                    article.category_id,
+                    article.comment_count
                 ))
             self.connection.commit()
             return c.lastrowid
