@@ -4,10 +4,19 @@ It also shows an overview of the amount of articles published in a specific cate
 on a specific day.
 
 ## Setup
-The following environment variables are needed to run news analyzer:
+### Poetry
+All dependencies are management by the poetry dependency management system (https://python-poetry.org). You need to install it to be able to run the project.
+
+### Environment variables
+The following environment variables are needed to run the news analyzer database setup:
 - export PYTHONPATH=$PYTHONPATH:/path/to/the/application
 - DB_USER: MySQL Username
 - DB_PASSWORD: MySQL Password
+- Run the setup-scripts: `poetry run python news_analyzer/database/setup.py``
+
+After the setup is complete, you can switch the db user according to the use case:
+- DB_USER: data_retrieval -> For running all reader-scripts (20min, blick, etc.)
+- DB_USER: report -> For running the visualize-script
 
 ## Available Scripts
 ### General
@@ -19,7 +28,7 @@ The following environment variables are needed to run news analyzer:
 - blick.ch: `poetry run python news_analyzer/readers/blick.py`
 
 ### Visualize Data
-`poetry run python news_analyzer/visualize.py`
+Run the following scripts for generating the HTML: `poetry run python news_analyzer/visualize.py`. After that, you can open the `statistics.html`-File which was generated in your browser.
 
 ## Database Design
 ### Site
