@@ -17,33 +17,14 @@ class User:
 
 
 @dataclass
-class Site:
-    id: int = None
-    name: str = None
-
-
-@dataclass
-class Category:
-    id: int = None
-    name: str = None
-
-
-@dataclass
 class Article:
     id: int = None
     external_id: str = None
-    author_id: int = None
-    site_id: int = None
+    author_last_name: str = None
+    author_first_name: str = None
+    site_name: str = None
     title: str = None
     length: int = 0
     published_at: datetime = None
-    category_id: int = None
+    category: str = None
     comment_count: int = None
-
-
-@dataclass
-class Comment:
-    id: int = None
-    article_id: int = None
-    user_id: int = None
-    submitted_at: datetime = None

@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-from news_analyzer.database.models import Article, User
+from news_analyzer.database.models import Article
 from news_analyzer.readers import Reader
 
 feeds = [
@@ -106,18 +106,13 @@ HTML_INFO = {
 class Tagesanzeiger(Reader):
     def process_entry(self, entry, args):
         category = args[0]
-        article = Article(site_id=3)
+        article = Article(site_name='Tagesanzeiger')
 
         article.title = entry.title
         article.published_at = entry.published_parsed
         article.external_id = entry.link.split("-")[-1]
 
-        # Start transaction
-        # We only want to persist the new data if all inserts (author, article, etc.)
-        # are successful
-        self.db.begin_transaction()
-
-        article.category_id = self.db.save_category(category)
+        article.category = category
 
         author_items = self.get_elements_from_html(
             entry.link, HTML_INFO['author'])
@@ -128,16 +123,19 @@ class Tagesanzeiger(Reader):
             HTML_INFO['author'][0], {"class": HTML_INFO['author'][1]})
 
         if len(spans) > 0:
-            author = User(type=1)
             author_splits = spans[0].text.split()
             if len(author_splits) > 1:
-                author.first_name = author_splits[0]
-                author.last_name = author_splits[1]
+                article.author_first_name = author_splits[0]
+                article.author_last_name = author_splits[1]
             else:
-                author.first_name = author_splits[0]
-                author.last_name = author_splits[0]
+                article.author_first_name = author_splits[0]
+                article.author_last_name = author_splits[0]
 
-            article.author_id = self.db.save_user(author)
+        if not article.author_first_name:
+            article.author_first_name = "N/A"
+
+        if not article.author_last_name:
+            article.author_last_name = "N/A"
 
         comments = self.get_elements_from_html(
             entry.link, HTML_INFO['comments'])
@@ -152,6 +150,11 @@ class Tagesanzeiger(Reader):
 
         if article.length == 0:
             article.length = len(article.title)
+
+        # Start transaction
+        # We only want to persist the new data if all inserts (author, article, etc.)
+        # are successful
+        self.db.begin_transaction()
 
         self.db.save_article(article)
 

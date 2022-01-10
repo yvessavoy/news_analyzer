@@ -4,18 +4,10 @@
 -- loaded through a script and will not change after that.
 
 -- Create a user for the data aggregation scripts
--- that has the right to SELECT and INSERT on all
--- tables
+-- that has the right to execute the sp_add_article-procedure
 DROP USER IF EXISTS 'data_retrieval'@'localhost';
 CREATE USER 'data_retrieval'@'localhost';
-GRANT SELECT ON news_analyzer.ARTICLE TO 'data_retrieval'@'localhost';
-GRANT INSERT ON news_analyzer.ARTICLE TO 'data_retrieval'@'localhost';
-
-GRANT SELECT ON news_analyzer.USER TO 'data_retrieval'@'localhost';
-GRANT INSERT ON news_analyzer.USER TO 'data_retrieval'@'localhost';
-
-GRANT SELECT ON news_analyzer.CATEGORY TO 'data_retrieval'@'localhost';
-GRANT INSERT ON news_analyzer.CATEGORY TO 'data_retrieval'@'localhost';
+GRANT EXECUTE ON PROCEDURE sp_add_article TO 'data_retrieval'@'localhost';
 
 -- Create a user for the data analysis / report generation script
 -- which only has the right to SELECT on all views

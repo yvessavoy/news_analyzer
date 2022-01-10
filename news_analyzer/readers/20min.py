@@ -1,5 +1,5 @@
 from news_analyzer.readers import Reader
-from news_analyzer.database.models import Article, User, Category
+from news_analyzer.database.models import Article
 
 
 # The following dict defines the tags and classes which represent
@@ -28,42 +28,60 @@ class TwentyMinutes(Reader):
 
         return int(div[0].span.text.split()[0])
 
+    def get_article_length(self, entry):
+        parts = self.get_elements_from_html(
+            entry.link, HTML_INFO['article_text'])
+        if parts:
+            return len(
+                ''.join(w.text for w in parts[0].find_all("p")))
+        else:
+            return 0
+
+    def get_author(self, entry):
+        parts = self.get_elements_from_html(entry.link, HTML_INFO['author'])
+        if parts:
+            s = str(parts[0]).split(">")[1].split("<")[0]
+            s = s.split()
+            if len(s) > 1:
+                return (s[1], s[0])
+            else:
+                return (s[0], s[0])
+
+        return ("N/A", "N/A")
+
+    def get_category(self, entry):
+        parts = self.get_elements_from_html(entry.link, HTML_INFO['category'])
+        if parts:
+            return parts[-1].text
+        else:
+            return "N/A"
+
     def process_entry(self, entry, *args):
-        article = Article(site_id=1)
+        article = Article(site_name='20 Minuten')
         article.title = entry.title
         article.published_at = entry.published_parsed
         article.external_id = entry.link.split("/")[-1]
         article.comment_count = self.get_comment_count(entry.link)
 
-        parts = self.get_elements_from_html(
-            entry.link, HTML_INFO['article_text'])
-        if parts:
-            article.length = len(
-                ''.join(w.text for w in parts[0].find_all("p")))
-        else:
+        article.length = self.get_article_length(entry)
+        if article.length == 0:
             article.length = len(article.title)
+
+        (a_ln, a_fn) = self.get_author(entry)
+        if not a_fn:
+            a_fn = a_ln
+
+        if not a_ln:
+            a_ln = a_fn
+
+        article.author_last_name = a_ln
+        article.author_first_name = a_fn
+        article.category = self.get_category(entry)
 
         # Start transaction
         # We only want to persist the new data if all inserts (author, article, etc.)
         # are successful
         self.db.begin_transaction()
-
-        parts = self.get_elements_from_html(entry.link, HTML_INFO['author'])
-        if parts:
-            author = User(type=1)
-            s = str(parts[0]).split()
-            if len(s) > 1:
-                author.last_name = s[0]
-                author.first_name = s[1]
-            else:
-                author.last_name = author.first_name = s[0]
-
-            article.author_id = self.db.save_user(author)
-
-        parts = self.get_elements_from_html(entry.link, HTML_INFO['category'])
-        if parts:
-            article.category_id = self.db.save_category(
-                Category(name=parts[-1].text))
 
         self.db.save_article(article)
 

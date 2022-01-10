@@ -1,12 +1,7 @@
-import ssl
-import os
 import re
-from bs4 import BeautifulSoup
-import feedparser
 import requests
 
-from news_analyzer.database import Database
-from news_analyzer.database.models import Article, User
+from news_analyzer.database.models import Article
 from news_analyzer.readers import Reader
 
 feeds = [
@@ -43,8 +38,8 @@ class Blick(Reader):
 
     def process_entry(self, entry, *args):
         category = args[0]
-        article = Article(site_id=2)
-        article.category_id = self.db.save_category(category)
+        article = Article(site_name='Blick')
+        article.category = category
         article.title = entry.title
         article.published_at = entry.published_parsed
         article.external_id = entry.link.split('-id')[1].split('.')[0]
@@ -54,18 +49,23 @@ class Blick(Reader):
             article.length = len(article.title)
 
         if 'author' in entry:
-            author = User(type=1)
             author_splits = entry.author.split()
             if len(author_splits) > 1:
-                author.first_name = author_splits[1]
-                author.last_name = author_splits[0]
+                article.author_first_name = author_splits[1]
+                article.author_last_name = author_splits[0]
             if len(author_splits) == 1:
-                author.first_name = author_splits[0]
-                author.last_name = author_splits[0]
+                article.author_first_name = author_splits[0]
+                article.author_last_name = author_splits[0]
 
-            article.author_id = self.db.save_user(author)
+        # Start transaction
+        # We only want to persist the new data if all inserts (author, article, etc.)
+        # are successful
+        self.db.begin_transaction()
 
         self.db.save_article(article)
+
+        # Commit transaction as all database operations were OK
+        self.db.commit_transaction()
 
     def process_feed(self):
         for (url, category) in feeds:
