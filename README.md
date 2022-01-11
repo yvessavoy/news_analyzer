@@ -20,7 +20,7 @@ After the setup is complete, you can switch the db user according to the use cas
 
 ## Available Scripts
 ### General
-- Setup database: `poetry run python news_analyzer/setup_db.py <user> <password>`
+- Setup database: `poetry run python news_analyzer/database/setup.py <user> <password>`
 
 ### Readers
 - 20min.ch: `poetry run python news_analyzer/readers/20min.py`
