@@ -12,7 +12,7 @@ The following environment variables are needed to run the news analyzer database
 - export PYTHONPATH=$PYTHONPATH:/path/to/the/application
 - DB_USER: MySQL Username
 - DB_PASSWORD: MySQL Password
-- Run the setup-scripts: `poetry run python news_analyzer/database/setup.py``
+- Run the setup-scripts: `poetry run python news_analyzer/database/setup.py`
 
 After the setup is complete, you can switch the db user according to the use case:
 - DB_USER: data_retrieval -> For running all reader-scripts (20min, blick, etc.)
